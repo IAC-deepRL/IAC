@@ -9,6 +9,7 @@ from elegantrl2.net import QNet, QNetDuel, QNetTwin, QNetTwinDuel
 from elegantrl2.net import Actor, ActorSAC, ActorPPO, ActorDiscretePPO
 from elegantrl2.net import Critic, CriticAdv, CriticTwin
 from elegantrl2.net import SharedDPG, SharedSPG, SharedPPO
+from elegantrl2.net import L3SharedDPG, L2SharedDPG
 
 """[ElegantRL](https://github.com/AI4Finance-LLC/ElegantRL)"""
 
@@ -745,6 +746,191 @@ class IAC(AgentBase):  # IAC (InterAC) waiting for check
         for i in range(int(buffer.now_len / batch_size * repeat_times)):
             with torch.no_grad():
                 reward, mask, action, state, next_state = buffer.sample_batch(batch_size_)
+
+                next_q_label, next_action = self.cri_target.next_q_action(state, next_state, self.policy_noise)
+                q_label = reward + mask * next_q_label
+
+            """critic_obj"""
+            q_eval = self.cri.critic(state, action)
+            critic_obj = self.criterion(q_eval, q_label)
+
+            '''auto reliable lambda'''
+            self.avg_loss_c = 0.995 * self.avg_loss_c + 0.005 * critic_obj.item() / 2  # soft update, twin critics
+            lamb = np.exp(-self.avg_loss_c ** 2)
+
+            '''actor correction term'''
+            actor_term = self.criterion(self.cri(next_state), next_action)
+
+            if i % repeat_times == 0:
+                '''actor obj'''
+                action_pg = self.cri(state)  # policy gradient
+                actor_obj = -self.cri_target.critic(state, action_pg).mean()  # policy gradient
+                # NOTICE! It is very important to use act_target.critic here instead act.critic
+                # Or you can use act.critic.deepcopy(). Whatever you cannot use act.critic directly.
+
+                united_loss = critic_obj + actor_term * (1 - lamb) + actor_obj * (lamb * 0.5)
+            else:
+                united_loss = critic_obj + actor_term * (1 - lamb)
+
+            """united loss"""
+            self.optim_update(self.cri_optim, united_loss)
+            if i % self.update_freq == self.update_freq and lamb > 0.1:
+                self.cri_target.load_state_dict(self.cri.state_dict())  # Hard Target Update
+
+        return actor_obj.item(), self.avg_loss_c
+
+
+class L3IAC(AgentBase):  # IAC (InterAC) waiting for check
+    def __init__(self):
+        super().__init__()
+        self.explore_noise = 0.2  # standard deviation of explore noise
+        self.policy_noise = 0.4  # standard deviation of policy noise
+        self.update_freq = 2 ** 7  # delay update frequency, for hard target update
+        self.avg_loss_c = (-np.log(0.5)) ** 0.5  # old version reliable_lambda
+
+        self.Cri = L3SharedDPG  # self.Act = None
+        self.optimizer = None
+
+    def select_action(self, state) -> np.ndarray:
+        states = torch.as_tensor((state,), dtype=torch.float32, device=self.device)
+        action = self.act(states)[0]
+
+        # action = (action + torch.randn_like(action) * self.explore_noise).clamp(-1, 1)
+        a_temp = torch.normal(action, self.explore_noise)
+        mask = torch.as_tensor((a_temp < -1.0) + (a_temp > 1.0), dtype=torch.float32)
+        noise_uniform = torch.rand_like(action)
+        action = noise_uniform * mask + a_temp * (-mask + 1)
+        return action.detach().cpu().numpy()
+
+    def update_net(self, buffer, batch_size, repeat_times, soft_update_tau) -> tuple:
+        buffer.update_now_len()
+
+        actor_obj = None  # just for print return
+        for i in range(int(buffer.now_len / batch_size * repeat_times)):
+            with torch.no_grad():
+                reward, mask, action, state, next_state = buffer.sample_batch(batch_size)
+
+                next_q_label, next_action = self.cri_target.next_q_action(state, next_state, self.policy_noise)
+                q_label = reward + mask * next_q_label
+
+            """critic_obj"""
+            q_eval = self.cri.critic(state, action)
+            critic_obj = self.criterion(q_eval, q_label)
+
+            '''auto reliable lambda'''
+            self.avg_loss_c = 0.995 * self.avg_loss_c + 0.005 * critic_obj.item() / 2  # soft update, twin critics
+            lamb = np.exp(-self.avg_loss_c ** 2)
+
+            '''actor correction term'''
+            actor_term = self.criterion(self.cri(next_state), next_action)
+
+            if i % repeat_times == 0:
+                '''actor obj'''
+                action_pg = self.cri(state)  # policy gradient
+                actor_obj = -self.cri_target.critic(state, action_pg).mean()  # policy gradient
+                # NOTICE! It is very important to use act_target.critic here instead act.critic
+                # Or you can use act.critic.deepcopy(). Whatever you cannot use act.critic directly.
+
+                united_loss = critic_obj + actor_term * (1 - lamb) + actor_obj * (lamb * 0.5)
+            else:
+                united_loss = critic_obj + actor_term * (1 - lamb)
+
+            """united loss"""
+            self.optim_update(self.cri_optim, united_loss)
+            if i % self.update_freq == self.update_freq and lamb > 0.1:
+                self.cri_target.load_state_dict(self.cri.state_dict())  # Hard Target Update
+
+        return actor_obj.item(), self.avg_loss_c
+
+
+class L2IAC(AgentBase):  # IAC (InterAC) waiting for check
+    def __init__(self):
+        super().__init__()
+        self.explore_noise = 0.2  # standard deviation of explore noise
+        self.policy_noise = 0.4  # standard deviation of policy noise
+        self.update_freq = 2 ** 7  # delay update frequency, for hard target update
+        self.avg_loss_c = (-np.log(0.5)) ** 0.5  # old version reliable_lambda
+
+        self.Cri = L2SharedDPG  # self.Act = None
+        self.optimizer = None
+
+    def select_action(self, state) -> np.ndarray:
+        states = torch.as_tensor((state,), dtype=torch.float32, device=self.device)
+        action = self.act(states)[0]
+
+        # action = (action + torch.randn_like(action) * self.explore_noise).clamp(-1, 1)
+        a_temp = torch.normal(action, self.explore_noise)
+        mask = torch.as_tensor((a_temp < -1.0) + (a_temp > 1.0), dtype=torch.float32)
+        noise_uniform = torch.rand_like(action)
+        action = noise_uniform * mask + a_temp * (-mask + 1)
+        return action.detach().cpu().numpy()
+
+    def update_net(self, buffer, batch_size, repeat_times, soft_update_tau) -> tuple:
+        buffer.update_now_len()
+
+        actor_obj = None  # just for print return
+        for i in range(int(buffer.now_len / batch_size * repeat_times)):
+            with torch.no_grad():
+                reward, mask, action, state, next_state = buffer.sample_batch(batch_size)
+
+                next_q_label, next_action = self.cri_target.next_q_action(state, next_state, self.policy_noise)
+                q_label = reward + mask * next_q_label
+
+            """critic_obj"""
+            q_eval = self.cri.critic(state, action)
+            critic_obj = self.criterion(q_eval, q_label)
+
+            '''auto reliable lambda'''
+            self.avg_loss_c = 0.995 * self.avg_loss_c + 0.005 * critic_obj.item() / 2  # soft update, twin critics
+            lamb = np.exp(-self.avg_loss_c ** 2)
+
+            '''actor correction term'''
+            actor_term = self.criterion(self.cri(next_state), next_action)
+
+            if i % repeat_times == 0:
+                '''actor obj'''
+                action_pg = self.cri(state)  # policy gradient
+                actor_obj = -self.cri_target.critic(state, action_pg).mean()  # policy gradient
+                # NOTICE! It is very important to use act_target.critic here instead act.critic
+                # Or you can use act.critic.deepcopy(). Whatever you cannot use act.critic directly.
+
+                united_loss = critic_obj + actor_term * (1 - lamb) + actor_obj * (lamb * 0.5)
+            else:
+                united_loss = critic_obj + actor_term * (1 - lamb)
+
+            """united loss"""
+            self.optim_update(self.cri_optim, united_loss)
+            if i % self.update_freq == self.update_freq and lamb > 0.1:
+                self.cri_target.load_state_dict(self.cri.state_dict())  # Hard Target Update
+
+        return actor_obj.item(), self.avg_loss_c
+
+
+class L1IAC(AgentBase):  # IAC (InterAC) waiting for check
+    def __init__(self):
+        super().__init__()
+        self.explore_noise = 0.2  # standard deviation of explore noise
+        self.policy_noise = 0.4  # standard deviation of policy noise
+        self.update_freq = 2 ** 7  # delay update frequency, for hard target update
+        self.avg_loss_c = (-np.log(0.5)) ** 0.5  # old version reliable_lambda
+
+        self.Cri = L2SharedDPG  # self.Act = None
+        self.optimizer = None
+
+    def select_action(self, state) -> np.ndarray:
+        states = torch.as_tensor((state,), dtype=torch.float32, device=self.device)
+        action = self.act(states)[0]
+
+        action = (action + torch.randn_like(action) * self.explore_noise).clamp(-1, 1)
+        return action.detach().cpu().numpy()
+
+    def update_net(self, buffer, batch_size, repeat_times, soft_update_tau) -> tuple:
+        buffer.update_now_len()
+
+        actor_obj = None  # just for print return
+        for i in range(int(buffer.now_len / batch_size * repeat_times)):
+            with torch.no_grad():
+                reward, mask, action, state, next_state = buffer.sample_batch(batch_size)
 
                 next_q_label, next_action = self.cri_target.next_q_action(state, next_state, self.policy_noise)
                 q_label = reward + mask * next_q_label

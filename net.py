@@ -376,6 +376,130 @@ class SharedDPG(nn.Module):  # DPG means deterministic policy gradient
         return q_target, a
 
 
+class L3SharedDPG(nn.Module):  # DPG means deterministic policy gradient
+    def __init__(self, state_dim, action_dim, mid_dim):
+        super().__init__()
+        nn_dense = L3DenseNet(mid_dim // 2)
+        inp_dim = nn_dense.inp_dim
+        out_dim = nn_dense.out_dim
+
+        self.enc_s = nn.Sequential(nn.Linear(state_dim, mid_dim), nn.ReLU(),
+                                   nn.Linear(mid_dim, inp_dim))
+        self.enc_a = nn.Sequential(nn.Linear(action_dim, mid_dim), nn.ReLU(),
+                                   nn.Linear(mid_dim, inp_dim))
+
+        self.net = nn_dense
+
+        self.dec_a = nn.Sequential(nn.Linear(out_dim, mid_dim), nn.Hardswish(),
+                                   nn.Linear(mid_dim, action_dim), nn.Tanh())
+        self.dec_q = nn.Sequential(nn.Linear(out_dim, mid_dim), nn.Hardswish(),
+                                   nn.utils.spectral_norm(nn.Linear(mid_dim, 1)))
+
+    @staticmethod
+    def add_noise(a, noise_std):
+        a_temp = torch.normal(a, noise_std)
+        mask = torch.tensor((a_temp < -1.0) + (a_temp > 1.0), dtype=torch.float32).cuda()
+
+        noise_uniform = torch.rand_like(a)
+        a_noise = noise_uniform * mask + a_temp * (-mask + 1)
+        return a_noise
+
+    def forward(self, s, noise_std=0.0):  # actor
+        s_ = self.enc_s(s)
+        a_ = self.net(s_)
+        a = self.dec_a(a_)
+        return a if noise_std == 0.0 else self.add_noise(a, noise_std)
+
+    def critic(self, s, a):
+        s_ = self.enc_s(s)
+        a_ = self.enc_a(a)
+        q_ = self.net(s_ + a_)
+        q = self.dec_q(q_)
+        return q
+
+    def next_q_action(self, s, s_next, noise_std):
+        s_ = self.enc_s(s)
+        a_ = self.net(s_)
+        a = self.dec_a(a_)
+
+        '''q_target (without noise)'''
+        a_ = self.enc_a(a)
+        s_next_ = self.enc_s(s_next)
+        q_target0_ = self.net(s_next_ + a_)
+        q_target0 = self.dec_q(q_target0_)
+
+        '''q_target (with noise)'''
+        a_noise = self.add_noise(a, noise_std)
+        a_noise_ = self.enc_a(a_noise)
+        q_target1_ = self.net(s_next_ + a_noise_)
+        q_target1 = self.dec_q(q_target1_)
+
+        q_target = (q_target0 + q_target1) * 0.5
+        return q_target, a
+
+
+class L2SharedDPG(nn.Module):  # DPG means deterministic policy gradient
+    def __init__(self, state_dim, action_dim, mid_dim):
+        super().__init__()
+        nn_dense = L3DenseNet(mid_dim // 2)
+        inp_dim = nn_dense.inp_dim
+        out_dim = nn_dense.out_dim
+
+        self.enc_s = nn.Sequential(nn.Linear(state_dim, mid_dim), nn.ReLU(),
+                                   nn.Linear(mid_dim, inp_dim))
+        self.enc_a = nn.Sequential(nn.Linear(action_dim, mid_dim), nn.ReLU(),
+                                   nn.Linear(mid_dim, inp_dim))
+
+        self.net = nn_dense
+
+        self.dec_a = nn.Sequential(nn.Linear(out_dim, mid_dim), nn.ReLU(),
+                                   nn.Linear(mid_dim, action_dim), nn.Tanh())
+        self.dec_q = nn.Sequential(nn.Linear(out_dim, mid_dim), nn.ReLU(),
+                                   nn.Linear(mid_dim, 1), )
+
+    @staticmethod
+    def add_noise(a, noise_std):
+        a_temp = torch.normal(a, noise_std)
+        mask = torch.tensor((a_temp < -1.0) + (a_temp > 1.0), dtype=torch.float32).cuda()
+
+        noise_uniform = torch.rand_like(a)
+        a_noise = noise_uniform * mask + a_temp * (-mask + 1)
+        return a_noise
+
+    def forward(self, s, noise_std=0.0):  # actor
+        s_ = self.enc_s(s)
+        a_ = self.net(s_)
+        a = self.dec_a(a_)
+        return a if noise_std == 0.0 else self.add_noise(a, noise_std)
+
+    def critic(self, s, a):
+        s_ = self.enc_s(s)
+        a_ = self.enc_a(a)
+        q_ = self.net(s_ + a_)
+        q = self.dec_q(q_)
+        return q
+
+    def next_q_action(self, s, s_next, noise_std):
+        s_ = self.enc_s(s)
+        a_ = self.net(s_)
+        a = self.dec_a(a_)
+
+        '''q_target (without noise)'''
+        a_ = self.enc_a(a)
+        s_next_ = self.enc_s(s_next)
+        q_target0_ = self.net(s_next_ + a_)
+        q_target0 = self.dec_q(q_target0_)
+
+        '''q_target (with noise)'''
+        a_noise = self.add_noise(a, noise_std)
+        a_noise_ = self.enc_a(a_noise)
+        q_target1_ = self.net(s_next_ + a_noise_)
+        q_target1 = self.dec_q(q_target1_)
+
+        q_target = (q_target0 + q_target1) * 0.5
+        return q_target, a
+
+
 class SharedSPG(nn.Module):  # SPG means stochastic policy gradient
     def __init__(self, mid_dim, state_dim, action_dim):
         super().__init__()
@@ -561,6 +685,20 @@ class DenseNet(nn.Module):  # plan to hyper-param: layer_number
         super().__init__()
         self.dense1 = nn.Sequential(nn.Linear(lay_dim * 1, lay_dim * 1), nn.Hardswish())
         self.dense2 = nn.Sequential(nn.Linear(lay_dim * 2, lay_dim * 2), nn.Hardswish())
+        self.inp_dim = lay_dim
+        self.out_dim = lay_dim * 4
+
+    def forward(self, x1):  # x1.shape==(-1, lay_dim*1)
+        x2 = torch.cat((x1, self.dense1(x1)), dim=1)
+        x3 = torch.cat((x2, self.dense2(x2)), dim=1)
+        return x3  # x2.shape==(-1, lay_dim*4)
+
+
+class L3DenseNet(nn.Module):
+    def __init__(self, lay_dim):
+        super().__init__()
+        self.dense1 = nn.Sequential(nn.Linear(lay_dim * 1, lay_dim * 1), nn.ReLU())
+        self.dense2 = nn.Sequential(nn.Linear(lay_dim * 2, lay_dim * 2), nn.ReLU())
         self.inp_dim = lay_dim
         self.out_dim = lay_dim * 4
 
