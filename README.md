@@ -52,7 +52,28 @@ A high-level overview:
 
 The while-loop will terminate when the conditions are met, e.g., achieving a target score, maximum steps, or manually breaks.
 
-## Experimental Demos 
+## Experiment
+
+### Experiment 5.1 Comparisons with Benchmark Algorithms
+
+I am the author of [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL). 
+You can find other DRL algorithms in this repo. (DDPG, TD3, SAC, PPO, ...)
+
+### Experiment 5.2 Self-comparisons
+
+#### Table 1. Levels of IAC for self-comparisons
+
+It is easy to run self-comparisons. Just replace the network to corresponding verison.
+
+| Level    |  Network| Description |
+| -- | ----------- | ----------------------------------------------------------------------|
+| L1 | haredDPG    | Integrated network + Adaptive objective                               |
+| L2 | L2SharedDPG | L1 + Modified exploration strategy                                    |
+| L3 | L3DenseNet  | L2 + Target policy smoothing + Spectral normalization                 |
+| L4 | DenseNet    | L3 + Hard-swish + Dropout + Adjusting batch size and iteration number |
+
+
+### Experimental Demos 
 
 [LunarLanderContinuous-v2](https://gym.openai.com/envs/LunarLanderContinuous-v2/)
 
@@ -82,7 +103,7 @@ Note: BipedalWalkerHardcore is a difficult task in continuous action space. Ther
 
 ## Citation:
 
-@inproceedings{Yonv2021intergratedAC,
+@inproceedings{ZhengJiaHao2021intergratedAC,
   title={Integrated Actor-Critic for Deep Reinforcement Learning},
   author={Zheng, Jiaohao and Kurt, Mehmet Necip and Wang, Xiaodong},
   booktitle={International Conference on Artificial Neural Networks},
@@ -91,6 +112,7 @@ Note: BipedalWalkerHardcore is a difficult task in continuous action space. Ther
   organization={Springer}
 }
 
+Or:
 
 @InProceedings{10.1007/978-3-030-86380-7_41,
 author="Zheng, Jiaohao
