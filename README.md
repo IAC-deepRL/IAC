@@ -92,7 +92,7 @@ Note: BipedalWalkerHardcore is a difficult task in a continuous action domain. T
 
 You can find the code of IAC: [Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2020](https://www.springerprofessional.de/en/integrated-actor-critic-for-deep-reinforcement-learning/19652718) also in the [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL) repository. Jiaohao Zheng is the author of this repository.
 
-## Citation:
+## Citation
 
 Zheng J., Kurt M.N., Wang X. (2021) Integrated Actor-Critic for Deep Reinforcement Learning. In: Farkaš I., Masulli P., Otte S., Wermter S. (eds) Artificial Neural Networks and Machine Learning – ICANN 2021. ICANN 2021. Lecture Notes in Computer Science, vol 12894. Springer, Cham. https://doi.org/10.1007/978-3-030-86380-7_41
 
