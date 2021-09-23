@@ -67,7 +67,7 @@ It is easy to run self-comparisons. Just replace the network to corresponding ve
 
 | Level    |  Network| Description |
 | -- | ----------- | ----------------------------------------------------------------------|
-| L1 | haredDPG    | Integrated network + Adaptive objective                               |
+| L1 | SharedDPG   | Integrated network + Adaptive objective                               |
 | L2 | L2SharedDPG | L1 + Modified exploration strategy                                    |
 | L3 | L3DenseNet  | L2 + Target policy smoothing + Spectral normalization                 |
 | L4 | DenseNet    | L3 + Hard-swish + Dropout + Adjusting batch size and iteration number |
