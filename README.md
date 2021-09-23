@@ -1,4 +1,7 @@
 ## IAC: [Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2020](https://www.springerprofessional.de/en/integrated-actor-critic-for-deep-reinforcement-learning/19652718)
+
+Free download this paper in this github: [IAC - Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2020.pdf](https://github.com/IAC-deepRL/IAC/blob/main/IAC%20-%20Integrated%20Actor-Critic%20for%20Deep%20Reinforcement%20Learning%20-%20ICANN%202020.pdf)
+
 ## SIAC: Stochastic Integrated Actor-Critic for Deep Reinforcement Learning
 
 
