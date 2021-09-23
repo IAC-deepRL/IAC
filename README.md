@@ -1,22 +1,9 @@
 ## IAC: [Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2020](https://www.springerprofessional.de/en/integrated-actor-critic-for-deep-reinforcement-learning/19652718)
 
-Free download this paper in this github: [IAC - Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2020.pdf](https://github.com/IAC-deepRL/IAC/blob/main/IAC%20-%20Integrated%20Actor-Critic%20for%20Deep%20Reinforcement%20Learning%20-%20ICANN%202020.pdf)
-
-## SIAC: Stochastic Integrated Actor-Critic for Deep Reinforcement Learning
-
-
-I am the author of [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL). 
-
-You can find the code of IAC: [Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2020](https://www.springerprofessional.de/en/integrated-actor-critic-for-deep-reinforcement-learning/19652718) in this repo. And you can also find a latest version in [ElegantRL Agent.py](https://github.com/AI4Finance-Foundation/ElegantRL/blob/master/elegantrl/agent.py):
-- IAC(Intergrated Actor-Critic), or call it SharedAC
-- SIAC(Stochastic Integrated Actor-Critic), or call it SharedSAC
-
-
-
 ## Framework
 ![File_structure](https://github.com/Yonv1943/ElegantRL/blob/master/figs/File_structure.png)
 
-   An agent (in **agent.py**) uses networks (in **net.py**) and is trained (in **run.py**) by interacting with an environment (in **env.py**).
+An agent (in **agent.py**) uses networks (in **net.py**) and is trained (in **run.py**) by interacting with an environment (in **env.py**).
    
 A high-level overview:
 + 1). Instantiate an environment in **Env.py**, and an agent in **Agent.py** with an Actor network and a Critic network in **Net.py**; 
@@ -38,7 +25,6 @@ A high-level overview:
    + Evaluator.
 
 
-
 ## Start to Train
 
 ### Initialization:
@@ -55,18 +41,17 @@ A high-level overview:
 
 The while-loop will terminate when the conditions are met, e.g., achieving a target score, maximum steps, or manually breaks.
 
-## Experiment
+## Experiments
 
 ### Experiment 5.1 Comparisons with Benchmark Algorithms
-
-I am the author of [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL). 
-You can find other DRL algorithms in this repo. (DDPG, TD3, SAC, PPO, ...)
+ 
+You can find other DRL algorithms (DDPG, TD3, SAC, PPO, ...) in the [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL) repository. 
 
 ### Experiment 5.2 Self-comparisons
 
 #### Table 1. Levels of IAC for self-comparisons
 
-It is easy to run self-comparisons. Just replace the network to corresponding verison.
+For self-comparisons, just replace the network with an algorithm level (L1 to L4).
 
 | Level    |  Network| Description |
 | -- | ----------- | ----------------------------------------------------------------------|
@@ -86,15 +71,14 @@ It is easy to run self-comparisons. Just replace the network to corresponding ve
 
 <img src="https://github.com/Yonv1943/ElegantRL/blob/master/figs/BipedalWalkerHardcore-v2-total-668kb.gif" width="150" height="100"/>
 
-Note: BipedalWalkerHardcore is a difficult task in continuous action space. There are only a few RL implementations can reach the target reward. Check out a experiment video: [Crack the BipedalWalkerHardcore-v2 with total reward 310 using IntelAC](https://www.bilibili.com/video/BV1wi4y187tC).
+Note: BipedalWalkerHardcore is a difficult task in a continuous action domain. There are only a few RL implementations that can reach the target reward. Check out an experiment video: [Crack the BipedalWalkerHardcore-v2 with total reward 310 using IntelAC](https://www.bilibili.com/video/BV1wi4y187tC).
 
 ## Requirements
 
-    Necessary:
+
     | Python 3.6+     |           
     | PyTorch 1.6+    |    
 
-    Not necessary:
     | Numpy 1.18+     | For ReplayBuffer. Numpy will be installed along with PyTorch.
     | gym 0.17.0      | For env. Gym provides tutorial env for DRL training. (env.render() bug in gym==1.18 pyglet==1.6. Change to gym==1.17.0, pyglet==1.5)
     | pybullet 2.7+   | For env. We use PyBullet (free) as an alternative of MuJoCo (not free).
@@ -102,35 +86,21 @@ Note: BipedalWalkerHardcore is a difficult task in continuous action space. Ther
     | matplotlib 3.2  | For plots. Evaluate the agent performance.
     
     pip3 install gym==1.17.0 pybullet Box2D matplotlib
+    
 
+## Notes
+
+You can find the code of IAC: [Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2020](https://www.springerprofessional.de/en/integrated-actor-critic-for-deep-reinforcement-learning/19652718) also in the [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL) repository. Jiaohao Zheng is the author of this repository.
 
 ## Citation:
 
-@inproceedings{ZhengJiaHao2021intergratedAC,
+Zheng J., Kurt M.N., Wang X. (2021) Integrated Actor-Critic for Deep Reinforcement Learning. In: Farkaš I., Masulli P., Otte S., Wermter S. (eds) Artificial Neural Networks and Machine Learning – ICANN 2021. ICANN 2021. Lecture Notes in Computer Science, vol 12894. Springer, Cham. https://doi.org/10.1007/978-3-030-86380-7_41
+
+@inproceedings{IAC2021, 
   title={Integrated Actor-Critic for Deep Reinforcement Learning},
   author={Zheng, Jiaohao and Kurt, Mehmet Necip and Wang, Xiaodong},
   booktitle={International Conference on Artificial Neural Networks},
   pages={505--518},
   year={2021},
   organization={Springer}
-}
-
-Or:
-
-@InProceedings{10.1007/978-3-030-86380-7_41,
-author="Zheng, Jiaohao
-and Kurt, Mehmet Necip
-and Wang, Xiaodong",
-editor="Farka{\v{s}}, Igor
-and Masulli, Paolo
-and Otte, Sebastian
-and Wermter, Stefan",
-title="Integrated Actor-Critic for Deep Reinforcement Learning",
-booktitle="Artificial Neural Networks and Machine Learning -- ICANN 2021",
-year="2021",
-publisher="Springer International Publishing",
-address="Cham",
-pages="505--518",
-abstract="We propose a new deep deterministic actor-critic algorithm with an integrated network architecture and an integrated objective function. We address stabilization of the learning procedure via a novel adaptive objective that roughly ensures keeping the actor unchanged while the critic makes large errors. We reduce the number of network parameters and propose an improved exploration strategy over bounded action spaces. Moreover, we incorporate some recent advances in deep learning to our algorithm. Experiments illustrate that our algorithm speeds up the learning process and reduces the sample complexity considerably over the state-of-the-art algorithms including TD3, SAC, PPO, and A2C in continuous control tasks.",
-isbn="978-3-030-86380-7"
 }
