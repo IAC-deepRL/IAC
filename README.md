@@ -1,4 +1,4 @@
-## IAC: [Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2020](https://www.springerprofessional.de/en/integrated-actor-critic-for-deep-reinforcement-learning/19652718)
+## IAC: [Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2021](https://www.springerprofessional.de/en/integrated-actor-critic-for-deep-reinforcement-learning/19652718)
 
 ## Framework
 ![File_structure](https://github.com/Yonv1943/ElegantRL/blob/master/figs/File_structure.png)
@@ -24,8 +24,7 @@ A high-level overview:
    + Training loop,
    + Evaluator.
 
-
-## Start to Train
+## Training Procedure
 
 ### Initialization:
 + hyper-parameters `args`.
@@ -34,7 +33,7 @@ A high-level overview:
 + `buffer = ReplayBuffer()` : stores the transitions.
 + `evaluator = Evaluator()` : evaluates and stores the trained model.
 
-### Training (a while-loop):
+### Training (a while loop):
 + `agent.explore_env(…)`: the agent explores the environment within target steps, generates transitions, and stores them into the ReplayBuffer.
 + `agent.update_net(…)`: the agent uses a batch from the ReplayBuffer to update the network parameters.
 + `evaluator.evaluate_save(…)`: evaluates the agent's performance and keeps the trained model with the highest score.
@@ -90,7 +89,7 @@ Note: BipedalWalkerHardcore is a difficult task in a continuous action domain. T
 
 ## Notes
 
-You can find the code of IAC: [Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2020](https://www.springerprofessional.de/en/integrated-actor-critic-for-deep-reinforcement-learning/19652718) also in the [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL) repository. Jiaohao Zheng is an author of this repository.
+You can find the code of IAC also in the [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL) repository. Jiaohao Zheng is an author of this repository.
 
 ## Citation
 
