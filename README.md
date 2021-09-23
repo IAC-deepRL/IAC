@@ -2,7 +2,7 @@
 ## SIAC: Stochastic Integrated Actor-Critic for Deep Reinforcement Learning
 
 
-I am the author of [ElegantRL over 1k star](https://github.com/AI4Finance-Foundation/ElegantRL). 
+I am the author of [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL). 
 
 You can find the code of IAC: [Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2020](https://www.springerprofessional.de/en/integrated-actor-critic-for-deep-reinforcement-learning/19652718) in this repo. And you can also find a latest version in [ElegantRL Agent.py](https://github.com/AI4Finance-Foundation/ElegantRL/blob/master/elegantrl/agent.py):
 - IAC(Intergrated Actor-Critic), or call it SharedAC
