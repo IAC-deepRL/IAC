@@ -82,4 +82,30 @@ Note: BipedalWalkerHardcore is a difficult task in continuous action space. Ther
 
 ## Citation:
 
+@inproceedings{Yonv2021intergratedAC,
+  title={Integrated Actor-Critic for Deep Reinforcement Learning},
+  author={Zheng, Jiaohao and Kurt, Mehmet Necip and Wang, Xiaodong},
+  booktitle={International Conference on Artificial Neural Networks},
+  pages={505--518},
+  year={2021},
+  organization={Springer}
+}
 
+
+@InProceedings{10.1007/978-3-030-86380-7_41,
+author="Zheng, Jiaohao
+and Kurt, Mehmet Necip
+and Wang, Xiaodong",
+editor="Farka{\v{s}}, Igor
+and Masulli, Paolo
+and Otte, Sebastian
+and Wermter, Stefan",
+title="Integrated Actor-Critic for Deep Reinforcement Learning",
+booktitle="Artificial Neural Networks and Machine Learning -- ICANN 2021",
+year="2021",
+publisher="Springer International Publishing",
+address="Cham",
+pages="505--518",
+abstract="We propose a new deep deterministic actor-critic algorithm with an integrated network architecture and an integrated objective function. We address stabilization of the learning procedure via a novel adaptive objective that roughly ensures keeping the actor unchanged while the critic makes large errors. We reduce the number of network parameters and propose an improved exploration strategy over bounded action spaces. Moreover, we incorporate some recent advances in deep learning to our algorithm. Experiments illustrate that our algorithm speeds up the learning process and reduces the sample complexity considerably over the state-of-the-art algorithms including TD3, SAC, PPO, and A2C in continuous control tasks.",
+isbn="978-3-030-86380-7"
+}
