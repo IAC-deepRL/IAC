@@ -44,7 +44,7 @@ The while-loop will terminate when the conditions are met, e.g., achieving a tar
 
 ### Experiment 5.1 Comparisons with Benchmark Algorithms
  
-You can find other DRL algorithms (DDPG, TD3, SAC, PPO, ...) in the [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL) repository. 
+You can find other DRL algorithms (TD3, SAC, PPO, A2C, ...) in the [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL) repository. 
 
 ### Experiment 5.2 Self-comparisons
 
