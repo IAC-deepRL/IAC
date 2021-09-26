@@ -560,7 +560,7 @@ class AgentPPO(AgentBase):
         return buf_r_sum, buf_advantage
 
 
-class IAC(AgentBase):  # IAC (InterAC) waiting for check
+class AgentIAC(AgentBase):  # IAC (InterAC) waiting for check
     def __init__(self):
         super().__init__()
         self.explore_noise = 0.2  # standard deviation of explore noise
