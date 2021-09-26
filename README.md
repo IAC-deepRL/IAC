@@ -81,22 +81,40 @@ def demo_continuous_action_off_policy():
 
 For self-comparisons, just replace the network with an algorithm level (L1 to L4).
 
-For example:
 
-You want to run L2 IAC, you can change `from elegantrl2.net import SharedSAC` to `from elegantrl2.net import L1SharedDPG as SharedDPG`, see more details in **Table 1.**
+You can change the `AgentIAC()` to `L3IAC(), L2IAC(), L1IAC()` run the self-comaprisons. 
 
-Then, run `def demo_continuous_action_off_policy()` or `def demo_continuous_action_off_policy()`
+```
+def demo_continuous_action_off_policy():
+    args = Arguments()
+    args.gpu_id = sys.argv[-1][-4]
+
+    from elegantrl2.agent import AgentIAC  # L3IAC, L2IAC, L1IAC
+    args.agent = AgentIAC()
+    
+    if_train_lunar_lander = 0
+    if if_train_lunar_lander:
+        ...
+        
+    if_train_bipedal_walker = 1
+    if if_train_bipedal_walker:
+        ...
+        
+    train_and_evaluate(args)     # train in single processing
+    train_and_evaluate_mp(args)  # train in multiprocessing
+```
+
 
 
 #### Table 1. Levels of IAC for self-comparisons
 
 
-| Level |   Network | Description |
-| -- | ------------------------ | ----------------------------------------------------------------------|
-| L1 | L1SharedDPG，L1DenseNet  | Integrated network + Adaptive objective                               |
-| L2 | L2SharedDPG，L1DenseNet  | L1 + Modified exploration strategy                                    |
-| L3 | SharedDPG，L1DenseNet    | L2 + Target policy smoothing + Spectral normalization                 |
-| L4 | SharedDPG，DenseNet      | L3 + Hard-swish + Dropout + Adjusting batch size and iteration number |
+| Level | Network | Description |
+| ----- | ------- | ----------------------------------------------------------------------|
+| L1    | L1IAC   | Integrated network + Adaptive objective                               |
+| L2    | L2IAC   | L1 + Modified exploration strategy                                    |
+| L3    | L3IAC   | L2 + Target policy smoothing + Spectral normalization                 |
+| L4    | IAC     | L3 + Hard-swish + Dropout + Adjusting batch size and iteration number |
 
 
 ### Experimental Demos 
