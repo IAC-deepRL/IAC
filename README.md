@@ -79,18 +79,24 @@ def demo_continuous_action_off_policy():
 ### Experiment 5.2 Self-comparisons
 
 
+For self-comparisons, just replace the network with an algorithm level (L1 to L4).
+
+For example:
+
+You want to run L2 IAC, you can change `from elegantrl2.net import SharedSAC` to `from elegantrl2.net import L1SharedDPG as SharedDPG`, see more details in **Table 1.**
+
+Then, run `def demo_continuous_action_off_policy()` or `def demo_continuous_action_off_policy()`
 
 
 #### Table 1. Levels of IAC for self-comparisons
 
-For self-comparisons, just replace the network with an algorithm level (L1 to L4).
 
-| Level    |  Network| Description |
-| -- | ----------- | ----------------------------------------------------------------------|
-| L1 | SharedDPG   | Integrated network + Adaptive objective                               |
-| L2 | L2SharedDPG | L1 + Modified exploration strategy                                    |
-| L3 | L3DenseNet  | L2 + Target policy smoothing + Spectral normalization                 |
-| L4 | DenseNet    | L3 + Hard-swish + Dropout + Adjusting batch size and iteration number |
+| Level |   Network | Description |
+| -- | ------------------------ | ----------------------------------------------------------------------|
+| L1 | L1SharedDPG，L1DenseNet  | Integrated network + Adaptive objective                               |
+| L2 | L2SharedDPG，L1DenseNet  | L1 + Modified exploration strategy                                    |
+| L3 | SharedDPG，L1DenseNet    | L2 + Target policy smoothing + Spectral normalization                 |
+| L4 | SharedDPG，DenseNet      | L3 + Hard-swish + Dropout + Adjusting batch size and iteration number |
 
 
 ### Experimental Demos 
