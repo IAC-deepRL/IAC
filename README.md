@@ -107,12 +107,12 @@ def demo_continuous_action_off_policy():
 #### Table 1. Levels of IAC for self-comparisons
 
 
-| Level | Network | Description |
-| ----- | ------- | ----------------------------------------------------------------------|
-| L1    | L1IAC   | Integrated network + Adaptive objective                               |
-| L2    | L2IAC   | L1 + Modified exploration strategy                                    |
-| L3    | L3IAC   | L2 + Target policy smoothing + Spectral normalization                 |
-| L4    | IAC     | L3 + Hard-swish + Dropout + Adjusting batch size and iteration number |
+| Level | Agent    | Description |
+| ----- | -------- | ----------------------------------------------------------------------|
+| L1    | L1IAC    | Integrated network + Adaptive objective                               |
+| L2    | L2IAC    | L1 + Modified exploration strategy                                    |
+| L3    | L3IAC    | L2 + Target policy smoothing + Spectral normalization                 |
+| L4    | AgentIAC | L3 + Hard-swish + Dropout + Adjusting batch size and iteration number |
 
 
 ### Experimental Demos 
