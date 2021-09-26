@@ -44,9 +44,42 @@ The while-loop will terminate when the conditions are met, e.g., achieving a tar
 
 ### Experiment 5.1 Comparisons with Benchmark Algorithms
  
-You can find other DRL algorithms (TD3, SAC, PPO, A2C, ...) in the [ElegantRL (over 1k stars)](https://github.com/AI4Finance-Foundation/ElegantRL) repository. 
+You can find other DRL algorithms (TD3, SAC, PPO, A2C, ...) in the this repo.
+
+Question: How to run the comparisons?
+
+Answer: Change the `args.agent = AgentXXX()` to run the comparisons algorithms. 
+- Run the off-policy with def `demo_continuous_action_off_policy()`
+- Run the on-policy with def `demo_continuous_action_on_policy()`
+
+In addition, you can change the `if_train_lunar_lander = 0, if_train_bipedal_walker = 0` to train different env.
+
+```
+def demo_continuous_action_off_policy():
+    args = Arguments()
+    args.gpu_id = sys.argv[-1][-4]
+
+    from elegantrl2.agent import AgentSAC  # AgentDDPG AgentTD3
+    args.agent = AgentSAC()
+    
+    if_train_lunar_lander = 0
+    if if_train_lunar_lander:
+        ...
+        
+    if_train_bipedal_walker = 1
+    if if_train_bipedal_walker:
+        ...
+        
+    train_and_evaluate(args)     # train in single processing
+    train_and_evaluate_mp(args)  # train in multiprocessing
+```
+
+
 
 ### Experiment 5.2 Self-comparisons
+
+
+
 
 #### Table 1. Levels of IAC for self-comparisons
 
