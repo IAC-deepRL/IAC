@@ -43,12 +43,10 @@ The while-loop will terminate when the conditions are met, e.g., achieving a tar
 ## Experiments
 
 ### Experiment 5.1 Comparisons with Benchmark Algorithms
- 
+
 You can find other DRL algorithms (TD3, SAC, PPO, A2C, ...) in the this repo.
 
-Question: How to run the comparisons?
-
-Answer: Change the `args.agent = AgentXXX()` to run the comparisons algorithms. 
+To run the comparisons, You can change the `args.agent = AgentXXX()` to run the comparisons algorithms. 
 - Run the off-policy with def `demo_continuous_action_off_policy()`
 - Run the on-policy with def `demo_continuous_action_on_policy()`
 
