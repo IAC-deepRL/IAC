@@ -7,7 +7,7 @@ from copy import deepcopy
 
 from elegantrl2.net import Actor, ActorSAC, ActorPPO
 from elegantrl2.net import Critic, CriticAdv, CriticTwin
-from elegantrl2.net import SharedDPG
+from elegantrl2.net import SharedDPG, L1SharedDPG, L2SharedDPG, L3SharedDPG
 
 
 class AgentBase:
