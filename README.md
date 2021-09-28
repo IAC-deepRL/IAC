@@ -42,7 +42,7 @@ The while loop terminates when the conditions are met (e.g., achieving a target 
 
 ## Experiments
 
-### Sec. 5.1: Comparisons with Benchmark Algorithms
+### Comparisons with Benchmark Algorithms
 
 You can find the implementation of benchmark DRL algorithms (TD3, SAC, PPO, and A2C) in this repository.
 
@@ -74,7 +74,7 @@ def demo_continuous_action_off_policy():
 
 
 
-### Sec. 5.2: Self-comparisons
+### Self-comparisons
 
 
 For the self-comparisons, just replace the network with an algorithm level (see Table 1 below for L1 to L4).
