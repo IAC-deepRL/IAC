@@ -1,4 +1,4 @@
-## IAC: [Integrated Actor-Critic for Deep Reinforcement Learning - ICANN 2021](https://www.springerprofessional.de/en/integrated-actor-critic-for-deep-reinforcement-learning/19652718)
+## IAC: [Integrated Actor-Critic for Deep Reinforcement Learning](https://doi.org/10.1007/978-3-030-86380-7_41)
 
 ## Framework
 ![File_structure](https://github.com/Yonv1943/ElegantRL/blob/master/figs/File_structure.png)
