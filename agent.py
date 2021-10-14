@@ -559,7 +559,168 @@ class AgentPPO(AgentBase):
         # buf_advantage = (buf_advantage - buf_advantage.mean()) / (buf_advantage.std() + 1e-5)
         return buf_r_sum, buf_advantage
 
+    
+class AgentA2C(AgentPPO):
+    def __init__(self):
+        super().__init__()
+        print('| AgentA2C: A2C or A3C is worse than PPO. We provide AgentA2C code just for teaching.'
+              '| Without TrustRegion, A2C needs special hyper-parameters, such as smaller repeat_times.')
 
+    def update_net(self, buffer, batch_size, repeat_times, soft_update_tau):
+        with torch.no_grad():
+            buf_len = buffer[0].shape[0]
+            buf_state, buf_reward, buf_mask, buf_action, buf_noise = [ten.to(self.device) for ten in buffer]
+
+            '''get buf_r_sum, buf_logprob'''
+            bs = 2 ** 10  # set a smaller 'BatchSize' when out of GPU memory.
+            buf_value = [self.cri_target(buf_state[i:i + bs]) for i in range(0, buf_len, bs)]
+            buf_value = torch.cat(buf_value, dim=0)
+            # buf_logprob = self.act.get_old_logprob(buf_action, buf_noise)
+
+            buf_r_sum, buf_adv_v = self.get_reward_sum(buf_len, buf_reward, buf_mask, buf_value)  # detach()
+            buf_adv_v = (buf_adv_v - buf_adv_v.mean()) * (self.lambda_a_value / (buf_adv_v.std() + 1e-5))
+            # buf_adv_v: advantage_value in ReplayBuffer
+            del buf_noise, buffer[:]
+
+        obj_critic = None
+        obj_actor = None
+        update_times = int(buf_len / batch_size * repeat_times)
+        for update_i in range(1, update_times + 1):
+            indices = torch.randint(buf_len, size=(batch_size,), requires_grad=False, device=self.device)
+
+            state = buf_state[indices]
+            r_sum = buf_r_sum[indices]
+            adv_v = buf_adv_v[indices]
+            action = buf_action[indices]
+            # logprob = buf_logprob[indices]
+
+            '''A2C: Advantage function'''
+            new_logprob, obj_entropy = self.act.get_logprob_entropy(state, action)  # it is obj_actor
+            obj_actor = -(adv_v * new_logprob.exp()).mean() + obj_entropy * self.lambda_entropy
+            self.optim_update(self.act_optim, obj_actor, self.act.parameters())
+
+            value = self.cri(state).squeeze(1)  # critic network predicts the reward_sum (Q value) of state
+            obj_critic = self.criterion(value, r_sum) / (r_sum.std() + 1e-6)
+            self.optim_update(self.cri_optim, obj_critic, self.cri.parameters())
+            self.soft_update(self.cri_target, self.cri, soft_update_tau) if self.cri_target is not self.cri else None
+
+        a_std_log = getattr(self.act, 'a_std_log', torch.zeros(1)).mean()
+        return obj_critic.item(), obj_actor.item(), a_std_log.item()  # logging_tuple
+
+
+class AgentSharedPPO(AgentPPO):
+    def __init__(self):
+        super().__init__()
+        self.obj_c = (-np.log(0.5)) ** 0.5  # for reliable_lambda
+
+    def init(self, net_dim, state_dim, action_dim, learning_rate=1e-4, if_per_or_gae=False, env_num=1, gpu_id=0):
+        self.device = torch.device(f"cuda:{gpu_id}" if torch.cuda.is_available() else "cpu")
+        if if_per_or_gae:
+            self.get_reward_sum = self.get_reward_sum_gae
+        else:
+            self.get_reward_sum = self.get_reward_sum_raw
+
+        self.act = self.cri = SharedPPO(state_dim, action_dim, net_dim).to(self.device)
+
+        self.cri_optim = torch.optim.Adam([
+            {'params': self.act.enc_s.parameters(), 'lr': learning_rate * 0.9},
+            {'params': self.act.dec_a.parameters(), },
+            {'params': self.act.a_std_log, },
+            {'params': self.act.dec_q1.parameters(), },
+            {'params': self.act.dec_q2.parameters(), },
+        ], lr=learning_rate)
+        self.criterion = torch.nn.SmoothL1Loss()
+
+    def update_net(self, buffer, batch_size, repeat_times, soft_update_tau):
+        with torch.no_grad():
+            buf_len = buffer[0].shape[0]
+            buf_state, buf_action, buf_noise, buf_reward, buf_mask = [ten.to(self.device) for ten in buffer]
+            # (ten_state, ten_action, ten_noise, ten_reward, ten_mask) = buffer
+
+            '''get buf_r_sum, buf_logprob'''
+            bs = 2 ** 10  # set a smaller 'BatchSize' when out of GPU memory.
+            buf_value = [self.cri_target(buf_state[i:i + bs]) for i in range(0, buf_len, bs)]
+            buf_value = torch.cat(buf_value, dim=0)
+            buf_logprob = self.act.get_old_logprob(buf_action, buf_noise)
+
+            buf_r_sum, buf_adv_v = self.get_reward_sum(buf_len, buf_reward, buf_mask, buf_value)  # detach()
+            buf_adv_v = (buf_adv_v - buf_adv_v.mean()) * (self.lambda_a_value / torch.std(buf_adv_v) + 1e-5)
+            # buf_adv_v: buffer data of adv_v value
+            del buf_noise, buffer[:]
+
+        obj_critic = obj_actor = None
+        for _ in range(int(buf_len / batch_size * repeat_times)):
+            indices = torch.randint(buf_len, size=(batch_size,), requires_grad=False, device=self.device)
+
+            state = buf_state[indices]
+            r_sum = buf_r_sum[indices]
+            adv_v = buf_adv_v[indices]  # advantage value
+            action = buf_action[indices]
+            logprob = buf_logprob[indices]
+
+            '''PPO: Surrogate objective of Trust Region'''
+            new_logprob, obj_entropy = self.act.get_logprob_entropy(state, action)  # it is obj_actor
+            ratio = (new_logprob - logprob.detach()).exp()
+            surrogate1 = adv_v * ratio
+            surrogate2 = adv_v * ratio.clamp(1 - self.ratio_clip, 1 + self.ratio_clip)
+            obj_surrogate = -torch.min(surrogate1, surrogate2).mean()
+            obj_actor = obj_surrogate + obj_entropy * self.lambda_entropy
+
+            value = self.cri(state).squeeze(1)  # critic network predicts the reward_sum (Q value) of state
+            obj_critic = self.criterion(value, r_sum) / (r_sum.std() + 1e-6)
+
+            obj_united = obj_critic + obj_actor
+            self.optim_update(self.cri_optim, obj_united, self.cri.parameters())
+            self.soft_update(self.cri_target, self.cri, soft_update_tau) if self.cri_target is not self.cri else None
+
+        a_std_log = getattr(self.act, 'a_std_log', torch.zeros(1)).mean()
+        return obj_critic.item(), obj_actor.item(), a_std_log.item()  # logging_tuple
+
+
+class AgentSharedA2C(AgentSharedPPO):
+    def update_net(self, buffer, batch_size, repeat_times, soft_update_tau):
+        with torch.no_grad():
+            buf_len = buffer[0].shape[0]
+            buf_state, buf_action, buf_noise, buf_reward, buf_mask = [ten.to(self.device) for ten in buffer]
+            # (ten_state, ten_action, ten_noise, ten_reward, ten_mask) = buffer
+
+            '''get buf_r_sum, buf_logprob'''
+            bs = 2 ** 10  # set a smaller 'BatchSize' when out of GPU memory.
+            buf_value = [self.cri_target(buf_state[i:i + bs]) for i in range(0, buf_len, bs)]
+            buf_value = torch.cat(buf_value, dim=0)
+            # buf_logprob = self.act.get_old_logprob(buf_action, buf_noise)
+
+            buf_r_sum, buf_adv_v = self.get_reward_sum(buf_len, buf_reward, buf_mask, buf_value)  # detach()
+            buf_adv_v = (buf_adv_v - buf_adv_v.mean()) * (self.lambda_a_value / torch.std(buf_adv_v) + 1e-5)
+            # buf_adv_v: buffer data of adv_v value
+            del buf_noise, buffer[:]
+
+        obj_critic = obj_actor = None
+        for _ in range(int(buf_len / batch_size * repeat_times)):
+            indices = torch.randint(buf_len, size=(batch_size,), requires_grad=False, device=self.device)
+
+            state = buf_state[indices]
+            r_sum = buf_r_sum[indices]
+            adv_v = buf_adv_v[indices]  # advantage value
+            action = buf_action[indices]
+            # logprob = buf_logprob[indices]
+
+            '''A2C: Advantage function'''
+            new_logprob, obj_entropy = self.act.get_logprob_entropy(state, action)  # it is obj_actor
+            obj_actor = -(adv_v * new_logprob.exp()).mean() + obj_entropy * self.lambda_entropy
+            self.optim_update(self.act_optim, obj_actor, self.act.parameters())
+
+            value = self.cri(state).squeeze(1)  # critic network predicts the reward_sum (Q value) of state
+            obj_critic = self.criterion(value, r_sum) / (r_sum.std() + 1e-6)
+
+            obj_united = obj_critic + obj_actor
+            self.optim_update(self.cri_optim, obj_united, self.cri.parameters())
+            self.soft_update(self.cri_target, self.cri, soft_update_tau) if self.cri_target is not self.cri else None
+
+        a_std_log = getattr(self.act, 'a_std_log', torch.zeros(1)).mean()
+        return obj_critic.item(), obj_actor.item(), a_std_log.item()  # logging_tuple
+
+    
 class AgentIAC(AgentBase):  # IAC (InterAC) waiting for check
     def __init__(self):
         super().__init__()
