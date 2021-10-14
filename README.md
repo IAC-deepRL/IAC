@@ -46,6 +46,14 @@ The while loop terminates when the conditions are met (e.g., achieving a target 
 
 You can find the implementation of benchmark DRL algorithms (TD3, SAC, PPO, and A2C) in this repository.
 
+```
+# agent.py
+class AgentTD3
+class AgentSAC
+class AgentPPO
+class AgentA2C
+```
+
 You can change `args.agent = AgentXXX()` to run the benchmark algorithms. 
 - Run the off-policy with `demo_continuous_action_off_policy()`
 - Run the on-policy with `demo_continuous_action_on_policy()`
